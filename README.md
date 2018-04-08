@@ -1,4 +1,4 @@
-# multi-get-wip
+# multi-get
 
 ## Description
 Build an application that downloads part of a file from a web server, in chunks.
