@@ -10,7 +10,7 @@ program
     .option('-p, --parallel', 'download chunks in parallel instead of sequentially')
     .parse(process.argv);
 
-if (program.args.length === 0) {
+if (program.args.length === 0 || program.args.length > 1) {
     program.outputHelp();
     process.exit(1);
 } 
