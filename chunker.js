@@ -41,10 +41,10 @@ function makeRequests(params) {
 
     if (program.parallel) {
         process.stdout.write(' in parallel\n');
-        async.eachOf(optionsArray, download, done);
+        async.eachOf(optionsArray, download, saveFile);
     } else {
         process.stdout.write(' in serial\n');
-        async.eachOfSeries(optionsArray, download, done);
+        async.eachOfSeries(optionsArray, download, saveFile);
     }
 }
 
@@ -76,7 +76,7 @@ function download(opt, index, callback) {
     req.end();
 }
 
-function done() {
+function saveFile() {
     const combinedBuffer = Buffer.concat(chunkDataArray);
     fs.writeFile(filename, combinedBuffer, function(err) {
         if (err) {
