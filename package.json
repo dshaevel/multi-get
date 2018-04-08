@@ -9,6 +9,7 @@
     },
     "dependencies": {
         "commander": "^2.15.1",
-        "pkginfo": "^0.4.1"
+        "pkginfo": "^0.4.1",
+        "valid-url": "^1.0.9"
     }
 }
