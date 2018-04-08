@@ -19,19 +19,18 @@ function prepareHeaders(program) {
 
     process.stdout.write('Downloading first ' + numberOfChunks + ' chunks of \'' + urlStr + '\' to \'' + filename + '\'');
 
-    // TODO: is there a better way to populate the optionsArray?
-    const optionsArray = [];
-    for (let x = 1; x <= numberOfChunks; x++) {
-        const options = {
+    const optionsArray = Array.from(new Array(4), (x, index) => {
+        return {
             hostname: url.hostname,
             port: url.port,
             path: url.pathname,
             method: 'GET',
-            headers: {}
+            headers: {
+                Range: utils.setRangeHeader(index + 1)
+            } 
         };
-        options.headers['Range'] = utils.setRangeHeader(x);
-        optionsArray.push(options);
-    }
+    });
+
     return Promise.resolve([optionsArray, program]);
 }
 
