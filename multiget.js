@@ -5,8 +5,6 @@ const program = require('commander');
 const validUrl = require('valid-url');
 const chunker = require('./chunker');
 
-const testUrl = 'http://91vfv5w.bwtest-aws.pravala.com/384MB.jar';
-
 program
     .version(this.version)
     .usage('[options] <url>')
@@ -28,5 +26,4 @@ if (validUrl.isHttpsUri(program.args[0])) {
     process.exit(1);
 }
 
-// chunker.downloadChunks(program.args[0])
 chunker.prepareHeaders(program).then(chunker.makeRequests);
