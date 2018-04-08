@@ -1,0 +1,14 @@
+{
+    "name": "multi-get",
+    "author": "David Shaevel",
+    "version": "0.0.1",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": ""
+    },
+    "dependencies": {
+        "commander": "^2.15.1",
+        "pkginfo": "^0.4.1"
+    }
+}
