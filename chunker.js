@@ -1,6 +1,6 @@
 const async = require('async');
 const fs = require('fs');
-const http = require('http');
+const request = require('request');
 const { URL } = require('url');
 const utils = require('./utils');
 
@@ -27,10 +27,7 @@ function prepareRequestHeaders(program) {
 
     const optionsArray = Array.from(new Array(numberOfChunks), (x, index) => {
         return {
-            hostname: url.hostname,
-            port: url.port,
-            path: url.pathname,
-            method: 'GET',
+            url: url,
             headers: {
                 Range: utils.getRangeHeader(index + 1, sizeOfChunks)
             } 
@@ -56,33 +53,30 @@ function makeRequests(params) {
 }
 
 function download(opt, index, callback) {
-    const req = http.request(opt, (res) => {
+    const chunkData = [];
+    request(opt, (error, response, body) => {
+        process.stdout.write('.');
+        chunkDataArray[index] = Buffer.concat(chunkData);
+        callback();
+    })
+    .on('response', (res) => {
         if (debugEnabled) {
             console.log('RESPONSE HEADERS: ' + JSON.stringify(res.headers, null, 2));
         }
         res.setEncoding('binary');
-        const chunkData = [];
 
         if (res.statusCode >= 400) {
             console.error('[ERROR] Unexpected response from server: %s %s', res.statusCode, res.statusMessage);
             process.exit(1);
         }
-        res.on('data', (data) => {
-            chunkData.push(Buffer.from(data, 'binary'));
-        });
-        res.on('end', () => {
-            process.stdout.write('.');
-            chunkDataArray[index] = Buffer.concat(chunkData);
-            callback();
-        });
-    });
-    
-    req.on('error', (err) => {
+    })
+    .on('data', (data) => {
+        chunkData.push(Buffer.from(data, 'binary'));
+    })
+    .on('error', (err) => {
         console.error('[ERROR] problem with request: %s', err.message);
         process.exit(1);
     });
-    
-    req.end();
 }
 
 function saveFile() {
