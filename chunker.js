@@ -10,7 +10,7 @@ let filename = '';
 let start;
 let end;
 
-function prepareHeaders(program) {
+function prepareRequestHeaders(program) {
     // const urlStr = testUrl;
     const urlStr = program.args[0];
     const url = new URL(urlStr);
@@ -95,5 +95,5 @@ function saveFile() {
 
 module.exports = {
     makeRequests: makeRequests,
-    prepareHeaders: prepareHeaders
+    prepareRequestHeaders: prepareRequestHeaders
 };
