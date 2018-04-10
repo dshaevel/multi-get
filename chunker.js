@@ -29,10 +29,11 @@ function prepareHeaders(program) {
             path: url.pathname,
             method: 'GET',
             headers: {
-                Range: utils.setRangeHeader(index + 1, sizeOfChunks)
+                Range: utils.getRangeHeader(index + 1, sizeOfChunks)
             } 
         };
     });
+    process.stdout.write('\n' + JSON.stringify(optionsArray, null, 2) + '\n');
 
     return Promise.resolve([optionsArray, program]);
 }
