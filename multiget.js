@@ -9,6 +9,7 @@ program
     .version(this.version)
     .usage('[options] <url>')
     .option('-c, --chunks <#>', 'number of chunks to use instead of default 4')
+    .option('-d, --debug', 'enable debug mode')
     .option('-o, --output <file>', 'write output to <file> instead of default')
     .option('-p, --parallel', 'download chunks in parallel instead of sequentially')
     .option('-s, --size <#>', 'size of chunks to use, in MiB, instead of default 1')

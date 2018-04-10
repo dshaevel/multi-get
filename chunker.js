@@ -6,6 +6,7 @@ const utils = require('./utils');
 
 const testUrl = 'http://91vfv5w.bwtest-aws.pravala.com/384MB.jar';
 const chunkDataArray = [];
+let debugEnabled = false;
 let filename = '';
 let start;
 let end;
@@ -19,8 +20,10 @@ function prepareRequestHeaders(program) {
         pathname === '' ? 'index.html' : pathname;
     const numberOfChunks = program.chunks ? parseInt(program.chunks) : 4;
     const sizeOfChunks = program.size ? parseInt(program.size) : 1;
+    const downloadTypeText = program.parallel ? ' in parallel\n' : ' in serial\n'
+    debugEnabled = program.debug;
 
-    process.stdout.write('Downloading first ' + numberOfChunks + ' chunks in ' + sizeOfChunks + ' MiB chunks of \'' + urlStr + '\' to \'' + filename + '\'');
+    process.stdout.write('Downloading first ' + numberOfChunks + ' chunks in ' + sizeOfChunks + ' MiB chunks of \'' + urlStr + '\' to \'' + filename + '\'' + downloadTypeText);
 
     const optionsArray = Array.from(new Array(numberOfChunks), (x, index) => {
         return {
@@ -33,7 +36,9 @@ function prepareRequestHeaders(program) {
             } 
         };
     });
-    process.stdout.write('\n' + JSON.stringify(optionsArray, null, 2) + '\n');
+    if (debugEnabled) {
+        process.stdout.write('REQUEST OPTIONS:' + JSON.stringify(optionsArray, null, 2) + '\n');
+    }
 
     return Promise.resolve([optionsArray, program]);
 }
@@ -44,17 +49,17 @@ function makeRequests(params) {
     start = new Date().getTime();
 
     if (program.parallel) {
-        process.stdout.write(' in parallel\n');
         async.eachOf(optionsArray, download, saveFile);
     } else {
-        process.stdout.write(' in serial\n');
         async.eachOfSeries(optionsArray, download, saveFile);
     }
 }
 
 function download(opt, index, callback) {
     const req = http.request(opt, (res) => {
-        // console.log('HEADERS: ' + JSON.stringify(res.headers, null, 2));
+        if (debugEnabled) {
+            console.log('RESPONSE HEADERS: ' + JSON.stringify(res.headers, null, 2));
+        }
         res.setEncoding('binary');
         const chunkData = [];
 
