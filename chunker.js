@@ -45,6 +45,10 @@ function prepareRequests(program) {
 
     process.stdout.write('Downloading first ' + numberOfChunks + ' chunks in ' + sizeOfChunks + ' MiB chunks of \'' + urlStr + '\' to \'' + filename + '\'' + downloadTypeText);
 
+    // Each element in the requestOptionsArray represents the HTTP request options
+    // that will be used to request each chunk by specifying the appropriate value
+    // for the HTTP Range header according to the number of chunks being requested
+    // and the size of each chunk
     const requestOptionsArray = Array.from(new Array(numberOfChunks), (x, index) => {
         return {
             url: url,
