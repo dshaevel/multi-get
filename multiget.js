@@ -72,4 +72,4 @@ if (program.size && isNaN(parseInt(program.size))) {
     process.exit(1);
 }
 
-chunker.prepareRequestHeaders(program).then(chunker.makeRequests);
+chunker.prepareRequests(program).then(chunker.makeRequests);

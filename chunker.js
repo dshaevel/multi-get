@@ -4,15 +4,35 @@ const request = require('request');
 const { URL } = require('url');
 const utils = require('./utils');
 
-const testUrl = 'http://91vfv5w.bwtest-aws.pravala.com/384MB.jar';
+// Stores the chunk data in the index corresponding to the order in which the 
+// chunk was requested.
+//
+// chunkDataArray[0] stores first chunk requested
+// chunkDataArray[1] stores second chunk requested
+// ...and so on
 const chunkDataArray = [];
+
 let debugEnabled = false;
 let filename = '';
+
+// Execution start time
 let start;
+// Execution end time
 let end;
 
-function prepareRequestHeaders(program) {
-    // const urlStr = testUrl;
+/**
+ * Prepares the HTTP requests for the given program options and arguments.
+ * 
+ * @param program The program options and arguments, which may contain the following:
+ * 
+ * - program.args[0] :: URL of file to download
+ * - program.output :: Output filename to use
+ * - program.chunks :: Number of chunks to download
+ * - program.size :: Size of chunks
+ * - program.parallel :: Download chunks in parallel
+ * - program.debug :: Enable debug mode
+ */
+function prepareRequests(program) {
     const urlStr = program.args[0];
     const url = new URL(urlStr);
     const pathname = url.pathname.substr(url.pathname.lastIndexOf('/') + 1);
@@ -25,7 +45,7 @@ function prepareRequestHeaders(program) {
 
     process.stdout.write('Downloading first ' + numberOfChunks + ' chunks in ' + sizeOfChunks + ' MiB chunks of \'' + urlStr + '\' to \'' + filename + '\'' + downloadTypeText);
 
-    const optionsArray = Array.from(new Array(numberOfChunks), (x, index) => {
+    const requestOptionsArray = Array.from(new Array(numberOfChunks), (x, index) => {
         return {
             url: url,
             headers: {
@@ -34,35 +54,62 @@ function prepareRequestHeaders(program) {
         };
     });
     if (debugEnabled) {
-        process.stdout.write('REQUEST OPTIONS:' + JSON.stringify(optionsArray, null, 2) + '\n');
+        process.stdout.write('REQUEST OPTIONS:' + JSON.stringify(requestOptionsArray, null, 2) + '\n');
     }
 
-    return Promise.resolve([optionsArray, program]);
+    return Promise.resolve([requestOptionsArray, program]);
 }
 
+/**
+ * Calls the function that requests and stores chunks in either parallel or
+ * serial according to the given program options.
+ * 
+ * @param params An array containing the following two parameters:
+ * 
+ * - params[0] :: The array of HTTP request options for all of the chunks to request
+ * - params[1] :: The program options and arguments
+ */
 function makeRequests(params) {
-    const optionsArray = params[0];
+    const requestOptionsArray = params[0];
     const program = params[1];
     start = new Date().getTime();
 
     if (program.parallel) {
-        async.eachOf(optionsArray, download, saveFile);
+        async.eachOf(requestOptionsArray, requestAndStoreChunk, writeChunksToFile);
     } else {
-        async.eachOfSeries(optionsArray, download, saveFile);
+        async.eachOfSeries(requestOptionsArray, requestAndStoreChunk, writeChunksToFile);
     }
 }
 
-function download(opt, index, callback) {
+/**
+ * Makes the HTTP request for a chunk using the given request options and stores
+ * the chunk data into the chunkDataArray using the given index.
+ * 
+ * @param requestOptions The HTTP request options.
+ * @param index The index that corresponds to the order in which the function 
+ * was called. See http://caolan.github.io/async/docs.html#eachOf
+ * @param done A callback function that is called when the chunk has finished 
+ * being requested and stored.
+ */
+function requestAndStoreChunk(requestOptions, index, done) {
+    // Data from the requested chunk
     const chunkData = [];
-    request(opt, (error, response, body) => {
+
+    request(requestOptions, () => {
         process.stdout.write('.');
+
+        // Store the chunk data to the chunkDataArray in the index corresponding to
+        // the order in which the chunk was requested
         chunkDataArray[index] = Buffer.concat(chunkData);
-        callback();
+
+        done();
     })
     .on('response', (res) => {
         if (debugEnabled) {
             console.log('RESPONSE HEADERS: ' + JSON.stringify(res.headers, null, 2));
         }
+
+        // Important!! Set the encoding of the response to binary
         res.setEncoding('binary');
 
         if (res.statusCode >= 400) {
@@ -71,6 +118,7 @@ function download(opt, index, callback) {
         }
     })
     .on('data', (data) => {
+        // Push the binary data from the requested chunk into chunkData
         chunkData.push(Buffer.from(data, 'binary'));
     })
     .on('error', (err) => {
@@ -79,20 +127,23 @@ function download(opt, index, callback) {
     });
 }
 
-function saveFile() {
-    const combinedBuffer = Buffer.concat(chunkDataArray);
-    fs.writeFile(filename, combinedBuffer, function(err) {
+/**
+ * Writes the chunk data stored in the chunkDataArray to a file.
+ */
+function writeChunksToFile() {
+    const chunkDataBuffer = Buffer.concat(chunkDataArray);
+    fs.writeFile(filename, chunkDataBuffer, function(err) {
         if (err) {
             console.error('[ERROR] An error occurred saving the file: %s', err.message);
             process.exit(1);
         }
         end = new Date().getTime();
-        const executionTime = (end -start) / 1000;
+        const executionTime = (end - start) / 1000;
         console.log('done in %s seconds', executionTime);
     });
 }
 
 module.exports = {
     makeRequests: makeRequests,
-    prepareRequestHeaders: prepareRequestHeaders
+    prepareRequests: prepareRequests
 };
