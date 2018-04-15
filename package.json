@@ -2,11 +2,12 @@
     "name": "multi-get",
     "author": "David Shaevel",
     "version": "1.0.0",
-    "license": "MIT",
-    "repository": {
-        "type": "git",
-        "url": ""
-    },
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "https://github.com/dshaevel/multi-get/blob/master/LICENSE"
+        }
+    ],
     "dependencies": {
         "async": "^2.6.0",
         "commander": "^2.15.1",
