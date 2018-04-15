@@ -1,16 +1,58 @@
-# multi-get
+# multi-get - v1.0.0 - David Shaevel
+### 04/11/2018
+
+---
 
 ## Description
 Build an application that downloads part of a file from a web server, in chunks.
 
 This is a simplified version of a “download booster”, which speeds up downloads by requesting files in multiple pieces simultaneously (saturating the network), then reassembling the pieces.
 
-## Installation
+## Installation and Usage
 ```
 $ npm install
 
 ## View usage information
 $ ./multiget.js -h
+
+  Usage: multiget [options] <url>
+
+  A command for downloading a file in chunks.
+
+  By default, multiget will request the first 4 MiB of a file in 1 MiB chunks, and write the result to disk.
+
+  Options:
+
+    -V, --version        output the version number
+    -c, --chunks <#>     number of chunks to use instead of default 4
+    -d, --debug          enable debug mode
+    -o, --output <file>  write output to <file> instead of default
+    -p, --parallel       download chunks in parallel instead of sequentially
+    -s, --size <#>       size of chunks to use, in MiB, instead of default 1
+    -h, --help           output usage information
+
+  Examples:
+
+    DEFAULT
+      Download first 4 chunks in 1 MiB chunks in serial:
+      $ ./multiget.js http://91vfv5w.bwtest-aws.pravala.com/384MB.jar
+
+    -c, --chunks
+      Download first 10 chunks in 1 MiB chunks in serial:
+      $ ./multiget.js -c 10 http://91vfv5w.bwtest-aws.pravala.com/384MB.jar
+
+    -s, --size
+      Download first 10 chunks in 5 MiB chunks in serial:
+      $ ./multiget.js -c 10 -s 5 http://91vfv5w.bwtest-aws.pravala.com/384MB.jar
+
+    -p, --parallel
+      Download first 10 chunks in 5 MiB chunks in parallel:
+      $ ./multiget.js -c 10 -s 5 -p http://91vfv5w.bwtest-aws.pravala.com/384MB.jar
+
+    -o, --output
+      Download first 10 chunks in 5 MiB chunks in parallel and write output to 'download.jar':
+      $ ./multiget.js -c 10 -s 5 -p -o download.jar http://91vfv5w.bwtest-aws.pravala.com/384MB.jar
+
 ```
 
 ## Requirements
